@@ -21,14 +21,16 @@ var summaries = new[]
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
 
-app.MapGet("/weatherforecast", () =>
+// default lambda parameter for zip
+app.MapGet("/weatherforecast", (string zip = "30022") =>
 {
     var forecast =  Enumerable.Range(1, 5).Select(index =>
         new WeatherForecast
         (
             DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
             Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
+            summaries[Random.Shared.Next(summaries.Length)],
+            zip
         ))
         .ToArray();
     return forecast;
@@ -36,9 +38,11 @@ app.MapGet("/weatherforecast", () =>
 .WithName("GetWeatherForecast")
 .WithOpenApi();
 
+
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary, string? Zip = null)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    public string Zip { get; } = Zip ?? "";
 }
