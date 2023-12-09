@@ -2,7 +2,6 @@
 
 - [Features](#features)
 - [Endpoints](#endpoints)
-  - [GET /net8/step/{id}](#get-net8stepid)
   - [GET /weatherforecast](#get-weatherforecast)
   - [GET /time](#get-time)
   - [Creating the JWT](#creating-the-jwt)
@@ -22,10 +21,7 @@ Then the `Program.cs` was edited to add some additional endpoints.
 - [Default parameters for lambdas](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/lambda-expressions#input-parameters-of-a-lambda-expression)
 - [Alias of any type](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-12.0/using-alias-types)
 
-
 ## Endpoints
-
-### GET /net8/step/{id}
 
 ### GET /weatherforecast
 

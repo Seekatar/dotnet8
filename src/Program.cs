@@ -1,4 +1,5 @@
 using dotnet8.Configuration;
+using dotnet8.TimeConfiguration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,7 +8,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Configuration.AddGenericConfiguration();
+builder.Configuration
+    .AddJsonFile("appsettings.json")
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true)
+    .AddEnvironmentVariables()
+    .AddGenericConfiguration<dotnet8.TimeConfiguration.TimeProvider,TimeOptions>(); // must be last since it reads the config from prev values
 
 var app = builder.Build();
 
@@ -44,7 +49,7 @@ app.MapGet("/weatherforecast", (string zip = "30022") =>
 
 app.MapGet("/time", (IConfiguration config) =>
 {
-    return config["WhatTimeIsIt"];
+    return new TimeResponse(config.GetValue<DateTime>("WhatTimeIsIt"), config.GetValue<int>($"{dotnet8.TimeConfiguration.TimeProvider.SectionName}:IntervalSeconds"));
 })
 .WithName("WhatTimeIsIt")
 .WithOpenApi();
@@ -56,3 +61,5 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary, string?
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
     public string Zip { get; } = Zip ?? "";
 }
+
+record TimeResponse(DateTime WhatTimeIsIt, int IntervalSeconds);

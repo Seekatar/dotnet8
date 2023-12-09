@@ -2,18 +2,18 @@ using System.Globalization;
 
 namespace dotnet8.Configuration;
 
-internal class GenericConfigurationSource : IConfigurationSource
+internal class GenericConfigurationSource<TProvider, TOptions> : IConfigurationSource where TProvider : IGenericConfigurationProvider<TOptions>, new()
 {
-    private readonly GenericConfigurationOptions _options;
+    private TOptions? _options;
 
-    public GenericConfigurationSource(GenericConfigurationOptions? options)
+    public GenericConfigurationSource(TOptions? options)
     {
-        _options = options ?? new GenericConfigurationOptions();
+        _options = options;
     }
 
     public IConfigurationProvider Build(IConfigurationBuilder builder)
     {
-        return new GenericConfigurationProvider(_options);
+        return new GenericConfigurationProvider<TProvider,TOptions>(_options);
     }
 }
 
@@ -24,49 +24,23 @@ internal class GenericConfigurationSource : IConfigurationSource
  and its base https://github.com/dotnet/runtime/blob/437611885c1211a3240497a93ea85f57d54bfea2/src/libraries/Microsoft.Extensions.Configuration.FileExtensions/src/FileConfigurationProvider.cs
  they never lock anything. On reload, they create a new dictionary (ConfigurationProvider.Data) and then swap it in.
 */
-
-
-internal class GenericConfigurationProvider : ConfigurationProvider // MS helper to do most of IConfigurationProvider impl
+internal class GenericConfigurationProvider<TProvider,TOptions> : ConfigurationProvider where TProvider : IGenericConfigurationProvider<TOptions>, new()
 {
-    private readonly GenericConfigurationOptions _options;
-
-    public GenericConfigurationProvider(GenericConfigurationOptions options)
+    private readonly TProvider _provider;
+    public GenericConfigurationProvider(TOptions? options)
     {
-        _options = options;
+        _provider = new TProvider();
+        _provider.Initialize(options, Reload);
+    }
+
+    private void Reload(IDictionary<string, string?> dictionary)
+    {
+        Data = dictionary;
+        OnReload();
     }
 
     public override void Load()
     {
-        Data = Load(_options);
-
-        var timer = new System.Timers.Timer(TimeSpan.FromSeconds(2).TotalMilliseconds);
-        timer.Elapsed += (sender, args) =>
-        {
-            Data = Load(_options);
-            OnReload(); // this tells IConfiguration to update, otherwise Data is updated, but nothing else
-        };
-        timer.AutoReset = true;
-        timer.Enabled = true;
+        Data = _provider.Load();
     }
-
-    private IDictionary<string, string?> Load(GenericConfigurationOptions options)
-    {
-        var data = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
-        data["WhatTimeIsIt"] = DateTime.Now.ToString(CultureInfo.InvariantCulture);
-        return data;
-    }
-
-    // just for debugging and learning to set breakpoints
-    public override IEnumerable<string> GetChildKeys(IEnumerable<string> earlierKeys, string? parentPath)
-    {
-        return base.GetChildKeys(earlierKeys, parentPath);
-    }
-
-    // just for debugging and learning to set breakpoints
-    public override bool TryGet(string key, out string? value)
-    {
-        bool ret = base.TryGet(key, out value);
-        return ret;
-    }
-
 }
