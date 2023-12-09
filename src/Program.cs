@@ -1,9 +1,13 @@
+using dotnet8.Configuration;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Configuration.AddGenericConfiguration();
 
 var app = builder.Build();
 
@@ -38,6 +42,12 @@ app.MapGet("/weatherforecast", (string zip = "30022") =>
 .WithName("GetWeatherForecast")
 .WithOpenApi();
 
+app.MapGet("/time", (IConfiguration config) =>
+{
+    return config["WhatTimeIsIt"];
+})
+.WithName("WhatTimeIsIt")
+.WithOpenApi();
 
 app.Run();
 
