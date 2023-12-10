@@ -2,12 +2,26 @@ using dotnet8.Configuration;
 using dotnet8.TimeConfiguration;
 using Microsoft.Extensions.Options;
 
+const string NotResilient = "NotResilient";
+const string Resilient = "Resilient";
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// .NET8 Can set resiliency or other settings for _all_ with this
+// builder.Services.ConfigureHttpClientDefaults(b => b.AddStandardResilienceHandler()); https://devblogs.microsoft.com/dotnet/dotnet-8-networking-improvements/#set-up-defaults-for-all-clients
+builder.Services.AddHttpClient(NotResilient);
+builder.Services.AddHttpClient(Resilient)
+    .AddStandardResilienceHandler(options =>
+    {
+        // .NET8 (but resiliency is NuGet available to all .NET)
+        // take the defaults, but can change them here
+        // see https://devblogs.microsoft.com/dotnet/building-resilient-cloud-services-with-dotnet-8/#standard-resilience-pipeline
+    });
 
 builder.Configuration
     .AddJsonFile("appsettings.json")
@@ -58,6 +72,43 @@ app.MapGet("/time", (IConfiguration config, IOptions<TimeConfigurationOptions> o
     return new TimeResponse(config.GetValue<DateTime>("WhatTimeIsIt"), options.Value.IntervalSeconds);
 })
 .WithName("WhatTimeIsIt")
+.WithOpenApi();
+
+// this will work since it does retry
+app.MapGet("/resilient", async (HttpRequest request, IHttpClientFactory clientFactory) => {
+    var client = clientFactory.CreateClient(Resilient);
+    var host = request.Host.Value;
+    var scheme = request.Scheme;
+    await client.GetAsync($"{scheme}://{host}/get-it?reset=true");
+    var response = await client.GetAsync($"{scheme}://{host}/get-it");
+    return response.StatusCode;
+})
+.WithName("Resilient")
+.WithOpenApi();
+
+// this will fail since it doesn't retry
+app.MapGet("/not-resilient", async (HttpRequest request, IHttpClientFactory clientFactory) => {
+    var client = clientFactory.CreateClient(NotResilient);
+    var host = request.Host.Value;
+    var scheme = request.Scheme;
+    await client.GetAsync($"{scheme}://{host}/get-it?reset=true");
+    var response = await client.GetAsync($"{scheme}://{host}/get-it");
+    return response.StatusCode;
+})
+.WithName("NotResilient")
+.WithOpenApi();
+
+// simulate failures for /resilient and /not-resilient
+int i = 1;
+app.MapGet("/get-it", (bool reset = false) => {
+    if (reset) {
+        i = 1; return Results.Ok(i);
+    }
+    var ret = i++ % 3 == 0 ? Results.Ok(i - 1) : Results.StatusCode(500);
+    System.Diagnostics.Debug.WriteLine($"Returning {ret} for {i - 1}");
+    return ret;
+})
+.WithName("GetIt")
 .WithOpenApi();
 
 app.Run();
