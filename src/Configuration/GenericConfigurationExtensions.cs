@@ -2,23 +2,23 @@
 
 namespace dotnet8.Configuration;
 
-public interface IGenericConfigurationProvider<TOptions>
+public interface IGenericConfigurationProvider
 {
-    static abstract string SectionName { get; }
+    public static T GetOptions<T>(IConfiguration configuration) where T : class, new() => configuration.GetSection(typeof(T).Name).Get<T>() ?? new T();
 
-    public void Initialize(TOptions? configuration, Action<IDictionary<string,string?>> onReload);
-    public IDictionary<string,string?> Load();
+    public void Initialize(IConfiguration configuration, Action<IDictionary<string,string?>> onReload);
+
+    public IDictionary<string,string?> Load() => throw new NotImplementedException();
 }
 
 public static class GenericConfigurationExtensions
 {
-    public static IConfigurationBuilder AddGenericConfiguration<TProvider,TOptions>(
-        this IConfigurationBuilder builder) where TProvider : IGenericConfigurationProvider<TOptions>, new()
+    public static IConfigurationBuilder AddGenericConfiguration<TProvider>(
+        this IConfigurationBuilder builder) where TProvider : IGenericConfigurationProvider, new()
     {
         var tempConfig = builder.Build();
-        var options = tempConfig.GetSection(TProvider.SectionName).Get<TOptions>();
 
-        return builder.Add(new GenericConfigurationSource<TProvider,TOptions>(options));
+        return builder.Add(new GenericConfigurationSource<TProvider>(tempConfig));
     }
 }
 

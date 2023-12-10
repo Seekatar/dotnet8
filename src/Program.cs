@@ -27,7 +27,7 @@ builder.Configuration
     .AddJsonFile("appsettings.json")
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true)
     .AddEnvironmentVariables()
-    .AddGenericConfiguration<TimeConfigurationProvider,TimeConfigurationOptions>(); // must be last since it reads the config from prev values
+    .AddGenericConfiguration<TimeConfigurationProvider>(); // must be last since it reads the config from prev values
 
 // for testing, normally you probably don't need this since it is used by AddGenericConfiguration
 builder.Services.AddOptions<TimeConfigurationOptions>()
@@ -69,7 +69,7 @@ app.MapGet("/weatherforecast", (string zip = "30022") =>
 
 app.MapGet("/time", (IConfiguration config, IOptions<TimeConfigurationOptions> options) =>
 {
-    return new TimeResponse(config.GetValue<DateTime>("WhatTimeIsIt"), options.Value.IntervalSeconds);
+    return new TimeResponse(config.GetValue<DateTime>("WhatTimeIsIt"), config.GetValue<DateTime>("WhatTimeWasIt"), options.Value.IntervalSeconds);
 })
 .WithName("WhatTimeIsIt")
 .WithOpenApi();
@@ -119,4 +119,4 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary, string?
     public string Zip { get; } = Zip ?? "";
 }
 
-record TimeResponse(DateTime WhatTimeIsIt, int IntervalSeconds);
+record TimeResponse(DateTime WhatTimeIsIt, DateTime WhatTimeWasIt, int IntervalSeconds);

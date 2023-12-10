@@ -1,15 +1,14 @@
 ﻿using System.Globalization;
 using dotnet8.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace dotnet8.TimeConfiguration;
 
-public class TimeConfigurationProvider : IGenericConfigurationProvider<TimeConfigurationOptions>
+public class TimeConfigurationProvider : IGenericConfigurationProvider
 {
-    public static string SectionName => TimeConfigurationOptions.SectionName;
-
-    public void Initialize(TimeConfigurationOptions? options, Action<IDictionary<string, string?>> onReload)
+    public void Initialize(IConfiguration configuration, Action<IDictionary<string, string?>> onReload)
     {
-        options ??= new TimeConfigurationOptions();
+        var options = IGenericConfigurationProvider.GetOptions<TimeConfigurationOptions>(configuration);
 
         var timer = new System.Timers.Timer(TimeSpan.FromSeconds(options.IntervalSeconds).TotalMilliseconds);
         timer.Elapsed += (sender, args) =>

@@ -1,19 +1,20 @@
+using Microsoft.Extensions.Configuration;
 using System.Globalization;
 
 namespace dotnet8.Configuration;
 
-internal class GenericConfigurationSource<TProvider, TOptions> : IConfigurationSource where TProvider : IGenericConfigurationProvider<TOptions>, new()
+internal class GenericConfigurationSource<TProvider> : IConfigurationSource where TProvider : IGenericConfigurationProvider, new()
 {
-    private TOptions? _options;
+    private IConfiguration _configuration;
 
-    public GenericConfigurationSource(TOptions? options)
+    public GenericConfigurationSource(IConfiguration configuration)
     {
-        _options = options;
+        _configuration = configuration;
     }
 
     public IConfigurationProvider Build(IConfigurationBuilder builder)
     {
-        return new GenericConfigurationProvider<TProvider,TOptions>(_options);
+        return new GenericConfigurationProvider<TProvider>(_configuration);
     }
 }
 
@@ -24,13 +25,14 @@ internal class GenericConfigurationSource<TProvider, TOptions> : IConfigurationS
  and its base https://github.com/dotnet/runtime/blob/437611885c1211a3240497a93ea85f57d54bfea2/src/libraries/Microsoft.Extensions.Configuration.FileExtensions/src/FileConfigurationProvider.cs
  they never lock anything. On reload, they create a new dictionary (ConfigurationProvider.Data) and then swap it in.
 */
-internal class GenericConfigurationProvider<TProvider,TOptions> : ConfigurationProvider where TProvider : IGenericConfigurationProvider<TOptions>, new()
+internal class GenericConfigurationProvider<TProvider> : ConfigurationProvider where TProvider : IGenericConfigurationProvider, new()
 {
     private readonly TProvider _provider;
-    public GenericConfigurationProvider(TOptions? options)
+    public GenericConfigurationProvider(IConfiguration configuration)
     {
         _provider = new TProvider();
-        _provider.Initialize(options, Reload);
+        
+        _provider.Initialize(configuration, Reload);
     }
 
     private void Reload(IDictionary<string, string?> dictionary)
