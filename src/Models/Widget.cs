@@ -3,7 +3,7 @@ namespace dotnet8.Models;
 // alias for any type now
 using WidgetId = System.Int32;
 
-// primary constructor means name, id required. name & id are in scope for the class.
+// .NET 8 primary constructor means name, id required. name & id are in scope for the class.
 // and can be used to initialize properties.
 public class Widget(string name, WidgetId id)
 {

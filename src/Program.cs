@@ -1,5 +1,6 @@
 using dotnet8.Configuration;
 using dotnet8.TimeConfiguration;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +13,12 @@ builder.Configuration
     .AddJsonFile("appsettings.json")
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true)
     .AddEnvironmentVariables()
-    .AddGenericConfiguration<dotnet8.TimeConfiguration.TimeProvider,TimeOptions>(); // must be last since it reads the config from prev values
+    .AddGenericConfiguration<TimeConfigurationProvider,TimeConfigurationOptions>(); // must be last since it reads the config from prev values
+
+// for testing, normally you probably don't need this since it is used by AddGenericConfiguration
+builder.Services.AddOptions<TimeConfigurationOptions>()
+    .Bind(builder.Configuration.GetSection(TimeConfigurationOptions.SectionName))
+    .ValidateDataAnnotations();
 
 var app = builder.Build();
 
@@ -30,7 +36,7 @@ var summaries = new[]
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
 
-// default lambda parameter for zip
+// .NET8 default lambda parameter for zip
 app.MapGet("/weatherforecast", (string zip = "30022") =>
 {
     var forecast =  Enumerable.Range(1, 5).Select(index =>
@@ -47,9 +53,9 @@ app.MapGet("/weatherforecast", (string zip = "30022") =>
 .WithName("GetWeatherForecast")
 .WithOpenApi();
 
-app.MapGet("/time", (IConfiguration config) =>
+app.MapGet("/time", (IConfiguration config, IOptions<TimeConfigurationOptions> options) =>
 {
-    return new TimeResponse(config.GetValue<DateTime>("WhatTimeIsIt"), config.GetValue<int>($"{dotnet8.TimeConfiguration.TimeProvider.SectionName}:IntervalSeconds"));
+    return new TimeResponse(config.GetValue<DateTime>("WhatTimeIsIt"), options.Value.IntervalSeconds);
 })
 .WithName("WhatTimeIsIt")
 .WithOpenApi();

@@ -3,13 +3,13 @@ using dotnet8.Configuration;
 
 namespace dotnet8.TimeConfiguration;
 
-public class TimeProvider : IGenericConfigurationProvider<TimeOptions>
+public class TimeConfigurationProvider : IGenericConfigurationProvider<TimeConfigurationOptions>
 {
-    public static string SectionName => "TimeProvider";
+    public static string SectionName => TimeConfigurationOptions.SectionName;
 
-    public void Initialize(TimeOptions? options, Action<IDictionary<string, string?>> onReload)
+    public void Initialize(TimeConfigurationOptions? options, Action<IDictionary<string, string?>> onReload)
     {
-        options ??= new TimeOptions();
+        options ??= new TimeConfigurationOptions();
 
         var timer = new System.Timers.Timer(TimeSpan.FromSeconds(options.IntervalSeconds).TotalMilliseconds);
         timer.Elapsed += (sender, args) =>
