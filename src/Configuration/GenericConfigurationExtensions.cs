@@ -4,11 +4,11 @@ namespace dotnet8.Configuration;
 
 public interface IGenericConfigurationProvider
 {
-    public static T GetOptions<T>(IConfiguration configuration) where T : class, new() => configuration.GetSection(typeof(T).Name).Get<T>() ?? new T();
+    public static T GetOptions<T>(IConfiguration configuration, string sectionName) where T : class, new() => configuration.GetSection(sectionName).Get<T>() ?? new T();
 
     public void Initialize(IConfiguration configuration, Action<IDictionary<string,string?>> onReload);
 
-    public IDictionary<string,string?> Load() => throw new NotImplementedException();
+    public IDictionary<string,string?>? Load() => null;
 }
 
 public static class GenericConfigurationExtensions

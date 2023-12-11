@@ -43,6 +43,10 @@ internal class GenericConfigurationProvider<TProvider> : ConfigurationProvider w
 
     public override void Load()
     {
-        Data = _provider.Load();
+        var newData = _provider.Load();
+        if (newData != null)
+        {
+            Data = newData;
+        }
     }
 }

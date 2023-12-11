@@ -27,7 +27,8 @@ builder.Configuration
     .AddJsonFile("appsettings.json")
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true)
     .AddEnvironmentVariables()
-    .AddGenericConfiguration<TimeConfigurationProvider>(); // must be last since it reads the config from prev values
+    .AddGenericConfiguration<TimeConfigurationProvider>() // must be after others it reads the config from prev values
+    .AddGenericConfiguration<HttpTimeConfigurationProvider>();
 
 // for testing, normally you probably don't need this since it is used by AddGenericConfiguration
 builder.Services.AddOptions<TimeConfigurationOptions>()

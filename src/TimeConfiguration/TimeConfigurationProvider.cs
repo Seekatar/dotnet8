@@ -8,7 +8,7 @@ public class TimeConfigurationProvider : IGenericConfigurationProvider
 {
     public void Initialize(IConfiguration configuration, Action<IDictionary<string, string?>> onReload)
     {
-        var options = IGenericConfigurationProvider.GetOptions<TimeConfigurationOptions>(configuration);
+        var options = IGenericConfigurationProvider.GetOptions<TimeConfigurationOptions>(configuration, TimeConfigurationOptions.SectionName);
 
         var timer = new System.Timers.Timer(TimeSpan.FromSeconds(options.IntervalSeconds).TotalMilliseconds);
         timer.Elapsed += (sender, args) =>
@@ -19,7 +19,7 @@ public class TimeConfigurationProvider : IGenericConfigurationProvider
         timer.Enabled = true;
     }
 
-    public IDictionary<string, string?> Load()
+    public IDictionary<string, string?>? Load()
     {
         var data = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
         data["WhatTimeIsIt"] = DateTime.Now.ToString(CultureInfo.InvariantCulture);
