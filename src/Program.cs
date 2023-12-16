@@ -13,15 +13,19 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // .NET8 Can set resiliency or other settings for _all_ with this
-// builder.Services.ConfigureHttpClientDefaults(b => b.AddStandardResilienceHandler()); https://devblogs.microsoft.com/dotnet/dotnet-8-networking-improvements/#set-up-defaults-for-all-clients
-builder.Services.AddHttpClient(NotResilient);
-builder.Services.AddHttpClient(Resilient)
-    .AddStandardResilienceHandler(options =>
-    {
-        // .NET8 (but resiliency is NuGet available to all .NET)
-        // take the defaults, but can change them here
-        // see https://devblogs.microsoft.com/dotnet/building-resilient-cloud-services-with-dotnet-8/#standard-resilience-pipeline
-    });
+// https://devblogs.microsoft.com/dotnet/dotnet-8-networking-improvements/#set-up-defaults-for-all-clients
+#if SetAddStandardResilienceHandlerOnAll
+    builder.Services.ConfigureHttpClientDefaults(b => b.AddStandardResilienceHandler());
+#else
+    builder.Services.AddHttpClient(NotResilient);
+    builder.Services.AddHttpClient(Resilient)
+        .AddStandardResilienceHandler(options =>
+        {
+            // .NET8 (but resiliency is NuGet available to all .NET)
+            // take the defaults, but can change them here
+            // see https://devblogs.microsoft.com/dotnet/building-resilient-cloud-services-with-dotnet-8/#standard-resilience-pipeline
+        });
+#endif
 
 builder.Configuration
     .AddJsonFile("appsettings.json")

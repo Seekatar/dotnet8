@@ -4,7 +4,9 @@
 - [Endpoints](#endpoints)
   - [GET /weatherforecast](#get-weatherforecast)
   - [GET /time](#get-time)
-  - [Creating the JWT](#creating-the-jwt)
+  - [GET /resilient](#get-resilient)
+  - [GET /not-resilient](#get-not-resilient)
+  - [GET /get-it](#get-get-it)
 
 This was created with this command after installing the .NET 8 preview SDK in the GitHub Codespaces container.
 
@@ -32,10 +34,16 @@ Classic example from the template, with default parameters for the lambda.
 
 ### GET /time
 
-Sample of a custom ConfigurationProvider that gets current time.
+Gets time from two custom `IConfiguration` providers. By default `WhatTimeIsIt` is refreshed every 10 seconds and `WhatTimeWasIt` is refreshed every 60 seconds, by calling this endpoint on a timer.
 
-### Creating the JWT
+### GET /resilient
 
-```powershell
-dotnet user-jwts create --role admin -o token
-```
+Test of the new HttpClientFactory resilience features. This will call /get-it which fails two times, but then succeed.
+
+### GET /not-resilient
+
+Negative test of the new HttpClientFactory resilience features. This will call /get-it without retry, so it will return a 500.
+
+### GET /get-it
+
+For the resiliency endpoints testing. This succeeds on every third call. Adding `?reset=true` will reset the counter.
