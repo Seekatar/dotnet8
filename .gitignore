@@ -296,7 +296,6 @@ __pycache__/
 
 **/google_client.json
 **/.env*
-**/loyal.*.tgz
 .dockerignore
 # Downloaded Google Service Account Key
 *-*-*.json

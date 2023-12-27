@@ -16,15 +16,28 @@ dotnet new webapi -o src
 
 Then the `Program.cs` was edited to add some additional endpoints.
 
+To run this locally, you can do `./run.ps1 run` or in the src folder `dotnet run`. `./run.ps1` also has `buildDocker` and `runDocker` commands for testing the Dockerfile.
+
 ## Features
 
-- [Primary Constructors](https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/instance-constructors#primary-constructors)
-- [Spread Operator for collections](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-12#collection-expressions)
-- [Default parameters for lambdas](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/lambda-expressions#input-parameters-of-a-lambda-expression)
-- [Alias of any type](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-12.0/using-alias-types)
-- HttpClientFactory
-  - [Default Settings for all HttpClients](https://devblogs.microsoft.com/dotnet/dotnet-8-networking-improvements/#set-up-defaults-for-all-clients)
-  - [HttpClientFactory Resilience](https://devblogs.microsoft.com/dotnet/building-resilient-cloud-services-with-dotnet-8/#standard-resilience-pipeline)
+- [Primary Constructors for classes](https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/instance-constructors#primary-constructors) (doc)
+  - [Widget.cs](src/Models/Widget.cs#L8)
+- [Spread Operator for collections](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-12#collection-expressions) (doc)
+  - [Program.cs](src/Program.cs#L126)
+- [Default parameters for lambdas](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/lambda-expressions#input-parameters-of-a-lambda-expression) (doc)
+  - [Program.cs](src/Program.cs#L65)
+- [Alias of any type](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-12.0/using-alias-types) (doc)
+  - [Program.cs](src/Program.cs#L6)
+- [HttpClientFactory Default Settings for all HttpClients](https://devblogs.microsoft.com/dotnet/dotnet-8-networking-improvements/#set-up-defaults-for-all-clients) (doc)
+  - [Program.cs](src/Program.cs#L21)
+- [HttpClientFactory Resilience](https://devblogs.microsoft.com/dotnet/building-resilient-cloud-services-with-dotnet-8/#standard-resilience-pipeline) (doc)
+  - [Program.cs](src/Program.cs#L23)
+- [Chiseled Containers](https://devblogs.microsoft.com/dotnet/announcing-dotnet-chiseled-containers/) (doc)
+  - [Dockerfile](DevOps/Docker/Dockerfile#L2)
+  - [run.ps1](run.ps1#L27) can override to not use chiseled containers.
+- [Custom IConfiguration Providers](https://learn.microsoft.com/en-us/dotnet/core/extensions/custom-configuration-provider) (doc)
+  - Not a .NET 8 feature, but added to this sample as a bonus!
+  - [GenericConfiguration.cs](src/Configuration/GenericConfiguration.cs#L28)
 
 ## Endpoints
 

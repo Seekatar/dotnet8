@@ -79,7 +79,10 @@ client.MapGet("/weatherforecast", (string zip = "30022") =>
 
 client.MapGet("/time", (IConfiguration config, IOptions<TimeConfigurationOptions> options) =>
 {
-    return new TimeResponse(config.GetValue<DateTime>("WhatTimeIsIt"), config.GetValue<DateTime>("WhatTimeWasIt"), options.Value.IntervalSeconds);
+    return new TimeResponse(config.GetValue<DateTime>("WhatTimeIsIt"),
+                            config.GetValue<DateTime>("WhatTimeWasIt"),
+                            options.Value.IntervalSeconds,
+                            options.Value.HttpIntervalSeconds);
 })
 .WithName("WhatTimeIsIt");
 
@@ -136,4 +139,4 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary, string?
     public string Zip { get; } = Zip ?? "";
 }
 
-record TimeResponse(DateTime WhatTimeIsIt, DateTime WhatTimeWasIt, int IntervalSeconds);
+record TimeResponse(DateTime WhatTimeIsIt, DateTime WhatTimeWasIt, int IntervalSeconds, int HttpIntervalSeconds);
