@@ -31,12 +31,16 @@ internal class GenericConfigurationProvider<TProvider> : ConfigurationProvider w
     public GenericConfigurationProvider(IConfiguration configuration)
     {
         _provider = new TProvider();
-        
+
         _provider.Initialize(configuration, Reload);
     }
 
-    private void Reload(IDictionary<string, string?> dictionary)
+    private void Reload(IDictionary<string, string?>? dictionary)
     {
+        if (dictionary == null)
+        {
+            return;
+        }
         Data = dictionary;
         OnReload();
     }

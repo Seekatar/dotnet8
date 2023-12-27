@@ -6,7 +6,7 @@ namespace dotnet8.TimeConfiguration;
 
 public class TimeConfigurationProvider : IGenericConfigurationProvider
 {
-    public void Initialize(IConfiguration configuration, Action<IDictionary<string, string?>> onReload)
+    public void Initialize(IConfiguration configuration, Action<IDictionary<string, string?>?> onReload)
     {
         var options = IGenericConfigurationProvider.GetOptions<TimeConfigurationOptions>(configuration, TimeConfigurationOptions.SectionName);
 

@@ -1,6 +1,6 @@
 namespace dotnet8.Models;
 
-// alias for any type now
+
 using WidgetId = System.Int32;
 
 // .NET 8 primary constructor means name, id required. name & id are in scope for the class.

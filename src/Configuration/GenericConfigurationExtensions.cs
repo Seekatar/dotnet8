@@ -6,7 +6,7 @@ public interface IGenericConfigurationProvider
 {
     public static T GetOptions<T>(IConfiguration configuration, string sectionName) where T : class, new() => configuration.GetSection(sectionName).Get<T>() ?? new T();
 
-    public void Initialize(IConfiguration configuration, Action<IDictionary<string,string?>> onReload);
+    public void Initialize(IConfiguration configuration, Action<IDictionary<string,string?>?> onReload);
 
     public IDictionary<string,string?>? Load() => null;
 }

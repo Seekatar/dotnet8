@@ -16,4 +16,7 @@ GET {{src_HostAddress}}/not-resilient
 GET {{src_HostAddress}}/get-it?reset=true
 
 ###
+GET {{src_HostAddress}}/widget
+
+###
 GET {{src_HostAddress}}/get-it

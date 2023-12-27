@@ -2,6 +2,9 @@ using dotnet8.Configuration;
 using dotnet8.TimeConfiguration;
 using Microsoft.Extensions.Options;
 
+// .NET 8 alias for any type now, before only named types
+using WidgetAlias = dotnet8.Models.Widget;
+
 const string NotResilient = "NotResilient";
 const string Resilient = "Resilient";
 
@@ -55,8 +58,11 @@ var summaries = new[]
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
 
+var client = app.MapGroup("/")
+                .WithOpenApi();
+
 // .NET8 default lambda parameter for zip
-app.MapGet("/weatherforecast", (string zip = "30022") =>
+client.MapGet("/weatherforecast", (string zip = "30022") =>
 {
     var forecast =  Enumerable.Range(1, 5).Select(index =>
         new WeatherForecast
@@ -69,18 +75,16 @@ app.MapGet("/weatherforecast", (string zip = "30022") =>
         .ToArray();
     return forecast;
 })
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+.WithName("GetWeatherForecast");
 
-app.MapGet("/time", (IConfiguration config, IOptions<TimeConfigurationOptions> options) =>
+client.MapGet("/time", (IConfiguration config, IOptions<TimeConfigurationOptions> options) =>
 {
     return new TimeResponse(config.GetValue<DateTime>("WhatTimeIsIt"), config.GetValue<DateTime>("WhatTimeWasIt"), options.Value.IntervalSeconds);
 })
-.WithName("WhatTimeIsIt")
-.WithOpenApi();
+.WithName("WhatTimeIsIt");
 
 // this will work since it does retry
-app.MapGet("/resilient", async (HttpRequest request, IHttpClientFactory clientFactory) => {
+client.MapGet("/resilient", async (HttpRequest request, IHttpClientFactory clientFactory) => {
     var client = clientFactory.CreateClient(Resilient);
     var host = request.Host.Value;
     var scheme = request.Scheme;
@@ -88,11 +92,10 @@ app.MapGet("/resilient", async (HttpRequest request, IHttpClientFactory clientFa
     var response = await client.GetAsync($"{scheme}://{host}/get-it");
     return response.StatusCode;
 })
-.WithName("Resilient")
-.WithOpenApi();
+.WithName("Resilient");
 
 // this will fail since it doesn't retry
-app.MapGet("/not-resilient", async (HttpRequest request, IHttpClientFactory clientFactory) => {
+client.MapGet("/not-resilient", async (HttpRequest request, IHttpClientFactory clientFactory) => {
     var client = clientFactory.CreateClient(NotResilient);
     var host = request.Host.Value;
     var scheme = request.Scheme;
@@ -100,12 +103,11 @@ app.MapGet("/not-resilient", async (HttpRequest request, IHttpClientFactory clie
     var response = await client.GetAsync($"{scheme}://{host}/get-it");
     return response.StatusCode;
 })
-.WithName("NotResilient")
-.WithOpenApi();
+.WithName("NotResilient");
 
 // simulate failures for /resilient and /not-resilient
 int i = 1;
-app.MapGet("/get-it", (bool reset = false) => {
+client.MapGet("/get-it", (bool reset = false) => {
     if (reset) {
         i = 1; return Results.Ok(i);
     }
@@ -113,8 +115,18 @@ app.MapGet("/get-it", (bool reset = false) => {
     System.Diagnostics.Debug.WriteLine($"Returning {ret} for {i - 1}");
     return ret;
 })
-.WithName("GetIt")
-.WithOpenApi();
+.WithName("GetIt");
+
+client.MapGet("/widget", () => {
+    // .NET8 construct lists with brackets and it figures out the type
+    List<WidgetAlias> widgetList = [new WidgetAlias("My Widget", 1), new WidgetAlias("My Widget", 2)];
+    WidgetAlias[] widgetArray = [new WidgetAlias("My Widget", 3), new WidgetAlias("My Widget", 4)];
+
+    // .NET8 spread operator
+    WidgetAlias[] ret = [new WidgetAlias("My Widget", 0), .. widgetList, .. widgetArray];
+    return ret; // try to return without ret gives ambiguous compiler error
+})
+.WithName("Widget");
 
 app.Run();
 
