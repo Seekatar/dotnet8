@@ -1,0 +1,22 @@
+@src_HostAddress = http://localhost:5000
+
+GET {{src_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+GET {{src_HostAddress}}/time
+
+###
+GET {{src_HostAddress}}/resilient
+
+###
+GET {{src_HostAddress}}/not-resilient
+
+###
+GET {{src_HostAddress}}/get-it?reset=true
+
+###
+GET {{src_HostAddress}}/widget
+
+###
+GET {{src_HostAddress}}/get-it
