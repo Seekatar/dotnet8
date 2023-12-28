@@ -1,4 +1,5 @@
 using dotnet8.Configuration;
+using dotnet8.ExceptionHandlers;
 using dotnet8.TimeConfiguration;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -51,7 +52,13 @@ builder.Services.AddOptions<TestOptions>()
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
+// register the exception handler and use it below
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
 var app = builder.Build();
+
+// use the exception handlers
+app.UseExceptionHandler(opt => { });
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -154,6 +161,11 @@ client.MapGet("/log-options", (IOptionsSnapshot<TestOptions> options, ILogger<Te
     return Results.Ok(new { Message = "Check the structured log output for multiple entries"});
 })
 .WithName("LogOptions");
+
+client.MapGet("/throw", () => {
+    throw new Exception("This is an exception");
+})
+.WithName("Throw");
 
 app.Run();
 

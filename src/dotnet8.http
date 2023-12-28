@@ -23,3 +23,6 @@ GET {{src_HostAddress}}/get-it
 
 ###
 GET {{src_HostAddress}}/log-options
+
+###
+GET {{src_HostAddress}}/throw
