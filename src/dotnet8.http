@@ -20,3 +20,6 @@ GET {{src_HostAddress}}/widget
 
 ###
 GET {{src_HostAddress}}/get-it
+
+###
+GET {{src_HostAddress}}/log-options

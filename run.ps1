@@ -49,7 +49,7 @@ param (
         }
      })]
     [string[]] $Tasks,
-    [string] $DockerTag = [DateTime]::Now.ToString("MMdd-HHmmss"),
+    [string] $DockerTag,
     [switch] $Plain,
     [switch] $NoCache,
     [bool] $DeleteDocker = $True,
@@ -137,7 +137,9 @@ foreach ($currentTask in $Tasks) {
             'runDocker' {
                 Get-DockerEnvFile
                 executeSB {
-                    $DockerTag = "latest"
+                    if (!$DockerTag) {
+                        $DockerTag = "latest"
+                    }
                     docker run --rm `
                                --env-file .env `
                                --interactive `
@@ -150,6 +152,9 @@ foreach ($currentTask in $Tasks) {
             }
             'buildDocker' {
                 executeSB -RelativeDir 'src' {
+                    if (!$DockerTag) {
+                        $DockerTag = [DateTime]::Now.ToString("MMdd-HHmmss")
+                    }
                     $extra = @()
                     if ($Plain) {
                         $extra += "--progress","plain"

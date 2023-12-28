@@ -7,6 +7,7 @@
   - [GET /resilient](#get-resilient)
   - [GET /not-resilient](#get-not-resilient)
   - [GET /get-it](#get-get-it)
+- [Testing Chiseled Containers](#testing-chiseled-containers)
 
 This was created with this command after installing the .NET 8 preview SDK in the GitHub Codespaces container.
 
@@ -19,6 +20,7 @@ Then the `Program.cs` was edited to add some additional endpoints.
 To run this locally, you can do `./run.ps1 run` or in the src folder `dotnet run`. `./run.ps1` also has `buildDocker` and `runDocker` commands for testing the Dockerfile.
 
 ## Features
+TODO https://dev.to/milanjovanovictech/global-error-handling-in-aspnet-core-8-2mki
 
 - [Primary Constructors for classes](https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/instance-constructors#primary-constructors) (doc)
   - [Widget.cs](src/Models/Widget.cs#L8)
@@ -35,6 +37,10 @@ To run this locally, you can do `./run.ps1 run` or in the src folder `dotnet run
 - [Chiseled Containers](https://devblogs.microsoft.com/dotnet/announcing-dotnet-chiseled-containers/) (doc)
   - [Dockerfile](DevOps/Docker/Dockerfile#L2)
   - [run.ps1](run.ps1#L27) can override to not use chiseled containers.
+- [Logging Objects LogProperties](https://andrewlock.net/customising-the-new-telemetry-logging-source-generator) (Andrew Lock's Blog)
+  - [TestOptions.cs](src/Models/TestOptions.cs#L26)
+  - [TestOptionTagProvider.cs](src/Models/TestOptionTagProvider.cs)
+  - [Program.cs](src/Program.cs#L145)
 - [Custom IConfiguration Providers](https://learn.microsoft.com/en-us/dotnet/core/extensions/custom-configuration-provider) (doc)
   - Not a .NET 8 feature, but added to this sample as a bonus!
   - [GenericConfiguration.cs](src/Configuration/GenericConfiguration.cs#L28)
@@ -60,3 +66,45 @@ Negative test of the new HttpClientFactory resilience features. This will call /
 ### GET /get-it
 
 For the resiliency endpoints testing. This succeeds on every third call. Adding `?reset=true` will reset the counter.
+
+## Testing Chiseled Containers
+
+Build the images
+
+```powershell
+ ./run.ps1 buildDocker -AspNetVersion aspNetVersion=8.0.0-jammy -DockerTag aspnet
+ ./run.ps1 buildDocker -DockerTag chiseled # defaults to chiseled
+ ```
+
+ Run the non-chiseled container.
+
+ ```powershell
+ ./run.ps1 runDocker -DockerTag aspnet
+
+```
+
+In another terminal try to attach. This should work. You can run usual Linux commands
+
+```powershell
+ docker exec -it dotnet8 bash
+ docker exec -it -u root dotnet8 bash
+ ```
+
+Run the chiseled container.
+
+ ```powershell
+ ./run.ps1 runDocker -DockerTag chiseled
+```
+
+In another terminal try to attach. This should get an error like `OCI runtime exec failed: exec failed: unable to start container process: exec: "bash": executable file not found in $PATH: unknown`
+
+```powershell
+ docker exec -it dotnet8 bash
+ docker exec -it -u root dotnet8 bash
+```
+
+One thing that will work is running the `dotnet` command.
+
+```powershell
+docker exec -it dotnet8 dotnet --info
+```
