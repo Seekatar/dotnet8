@@ -1,6 +1,8 @@
 using dotnet8.Configuration;
+using dotnet8.ExceptionHandlers;
 using dotnet8.TimeConfiguration;
 using Microsoft.Extensions.Options;
+using Serilog;
 
 // .NET 8 alias for any type now, before only named types
 using WidgetAlias = dotnet8.Models.Widget;
@@ -37,12 +39,26 @@ builder.Configuration
     .AddGenericConfiguration<TimeConfigurationProvider>() // must be after others it reads the config from prev values
     .AddGenericConfiguration<HttpTimeConfigurationProvider>();
 
+builder.Host.UseSerilog((ctx,loggerConfig) => loggerConfig.ReadFrom.Configuration(builder.Configuration));
+
 // for testing, normally you probably don't need this since it is used by AddGenericConfiguration
 builder.Services.AddOptions<TimeConfigurationOptions>()
     .Bind(builder.Configuration.GetSection(TimeConfigurationOptions.SectionName))
-    .ValidateDataAnnotations();
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+builder.Services.AddOptions<TestOptions>()
+    .Bind(builder.Configuration.GetSection(TestOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+// register the exception handler and use it below
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 var app = builder.Build();
+
+// use the exception handlers
+app.UseExceptionHandler(opt => { });
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -130,6 +146,26 @@ client.MapGet("/widget", () => {
     return ret; // try to return without ret gives ambiguous compiler error
 })
 .WithName("Widget");
+
+client.MapGet("/log-options", (IOptionsSnapshot<TestOptions> options, ILogger<TestOptions> logger) => {
+
+    // .NET 6 flavor that logs individual properties to the logs
+    TestOptions.LogOptions(logger, TestOptions.MaskConnectionString(options.Value.MasterConnectionString),
+                                   TestOptions.MaskConnectionString(options.Value.ClientConnectionString));
+
+    // .NET 8 flavor that logs all properties to structured logging
+    TestOptions.LogOptionsWithLogProperties(logger, options.Value);
+    TestOptions.LogOptionsWithLogPropertiesSkipNull(logger, options.Value);
+    TestOptions.LogOptionsWithLogProvider(logger, options.Value);
+
+    return Results.Ok(new { Message = "Check the structured log output for multiple entries"});
+})
+.WithName("LogOptions");
+
+client.MapGet("/throw", () => {
+    throw new Exception("This is an exception");
+})
+.WithName("Throw");
 
 app.Run();
 
