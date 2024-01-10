@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Security.Cryptography;
 using dotnet8.Configuration;
 using dotnet8.ExceptionHandlers;
@@ -56,6 +57,12 @@ builder.Services.AddOptions<TestOptions>()
 
 // register the exception handler and use it below
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+// keyed services, these are _not_ returned from IEnumerable<IDoit>, only second two
+builder.Services.AddKeyedScoped<IDoIt, DoItA>("A");
+builder.Services.AddKeyedScoped<IDoIt, DoItB>("B");
+builder.Services.AddScoped<IDoIt, DoItC>();
+builder.Services.AddScoped<IDoIt, DoItD>();
 
 var app = builder.Build();
 
@@ -141,7 +148,7 @@ client.MapGet("/get-it", (bool reset = false) => {
 client.MapGet("/widget", () => {
     // .NET8 construct lists with brackets and it figures out the type
     List<WidgetAlias> widgetList = [new WidgetAlias("My Widget", 1), new WidgetAlias("My Widget", 2)];
-    WidgetAlias[] widgetArray = [new WidgetAlias("My Widget", 3), new WidgetAlias("My Widget", 4)];
+    Collection<Widget> widgetArray = [new WidgetAlias("My Widget", 3), new WidgetAlias("My Widget", 4)];
 
     // .NET8 spread operator
     WidgetAlias[] ret = [new WidgetAlias("My Widget", 0), .. widgetList, .. widgetArray];
@@ -181,6 +188,14 @@ client.MapGet("/random", () => {
 })
 .WithName("Random");
 
+client.MapGet("/keyed-service", ([FromKeyedServices("A")] IDoIt a,
+                                 [FromKeyedServices("B")] IDoIt b,
+                                 IEnumerable<IDoIt> both ) => {
+    string [] ret = [a.DoIt(), b.DoIt(), .. both.Select(x => x.DoIt()) ];
+    return Results.Ok(ret);
+})
+.WithName("KeyedService");
+
 app.Run();
 
 record RandomStuff(string GetHexString, string GetString, string[] GetItems, string[] Shuffle);
@@ -192,3 +207,12 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary, string?
 }
 
 record TimeResponse(DateTime WhatTimeIsIt, DateTime WhatTimeWasIt, int IntervalSeconds, int HttpIntervalSeconds);
+
+interface IDoIt
+{
+    string DoIt() => $"{GetType().Name} did it";
+}
+class DoItA : IDoIt {}
+class DoItB : IDoIt {}
+class DoItC : IDoIt {}
+class DoItD : IDoIt {}

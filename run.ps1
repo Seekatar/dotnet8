@@ -131,6 +131,7 @@ foreach ($currentTask in $Tasks) {
             }
             'run' {
                 executeSB -RelativeDir "src" {
+                    $env:ASPNETCORE_HTTP_PORTS=5000
                     dotnet run
                 }
             }

@@ -1,31 +1,39 @@
 @src_HostAddress = http://localhost:5000
 
-GET {{src_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
-GET {{src_HostAddress}}/time
-
-###
-GET {{src_HostAddress}}/resilient
-
-###
-GET {{src_HostAddress}}/not-resilient
-
-###
-GET {{src_HostAddress}}/get-it?reset=true
-
-###
+### spread operator
 GET {{src_HostAddress}}/widget
 
-###
-GET {{src_HostAddress}}/get-it
+### default parameters in lambda
+GET {{src_HostAddress}}/weatherforecast
 
 ###
+GET {{src_HostAddress}}/weatherforecast?zip=61614
+
+### reset exception count
+GET {{src_HostAddress}}/get-it?reset=true
+### will retry even though gets error
+GET {{src_HostAddress}}/resilient
+
+### reset exception count
+GET {{src_HostAddress}}/get-it?reset=true
+### will not retry
+GET {{src_HostAddress}}/not-resilient
+
+### logs object semantic log
 GET {{src_HostAddress}}/log-options
 
-###
+### exception handling
 GET {{src_HostAddress}}/throw
 
-###
+### show random data
 GET {{src_HostAddress}}/random
+
+### keyed services
+GET {{src_HostAddress}}/keyed-service
+
+### IConfiguration Provider test
+GET {{src_HostAddress}}/time
+
+### called by resilience endpoints
+GET {{src_HostAddress}}/get-it
+
