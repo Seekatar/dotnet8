@@ -9,7 +9,7 @@
 			"version": "8.0"
 		},
 		"ghcr.io/devcontainers/features/powershell:1": {
-			"version": "7.1"
+			"version": "7.4"
 		}
 	}
 

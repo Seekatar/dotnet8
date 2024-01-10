@@ -26,3 +26,6 @@ GET {{src_HostAddress}}/log-options
 
 ###
 GET {{src_HostAddress}}/throw
+
+###
+GET {{src_HostAddress}}/random

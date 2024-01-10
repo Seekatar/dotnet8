@@ -1,6 +1,8 @@
+using System.Security.Cryptography;
 using dotnet8.Configuration;
 using dotnet8.ExceptionHandlers;
 using dotnet8.TimeConfiguration;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Options;
 using Serilog;
 
@@ -167,7 +169,21 @@ client.MapGet("/throw", () => {
 })
 .WithName("Throw");
 
+client.MapGet("/random", () => {
+    Span<string> someStrings = [ "Twas", "brillig", "slithy", "toves", "Did ", "gyre", "gimble", "wabe", "All", "mimsy", "borogoves", "mome", "raths", "outgrabe" ];
+    RandomNumberGenerator.Shuffle(someStrings);
+    return Results.Ok(new RandomStuff(
+        RandomNumberGenerator.GetHexString(16),
+        RandomNumberGenerator.GetString("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 16),
+        RandomNumberGenerator.GetItems<string>(someStrings, 4),
+        someStrings.ToArray()
+        ));
+})
+.WithName("Random");
+
 app.Run();
+
+record RandomStuff(string GetHexString, string GetString, string[] GetItems, string[] Shuffle);
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary, string? Zip = null)
 {
