@@ -8,15 +8,15 @@ public partial class TestOptions
     public static string SectionName = "TestOptions";
 
     [Required]
-    [LogPropertyIgnore] // .NET8
+    [LogPropertyIgnore] // .NET 8
     public required string MasterConnectionString { get; set; }
     [Required]
-    [LogPropertyIgnore] // .NET8
+    [LogPropertyIgnore] // .NET 8
     public required string ClientConnectionString { get; set; }
     [Required]
     public required string SshKey { get; set; }
     [Required]
-    [LogPropertyIgnore] // .NET8
+    [LogPropertyIgnore] // .NET 8
     public required string Password { get; set; }
     public string? NullSecret { get; set; }
 
@@ -30,17 +30,17 @@ public partial class TestOptions
     // LogProperties is .NET 8. Don't use parameters in the Message string
     [LoggerMessage(Level = LogLevel.Information, Message = nameof(LogOptionsWithLogProperties))]
     public static partial void LogOptionsWithLogProperties(ILogger logger,
-                                [LogProperties] // .NET8
+                                [LogProperties] // .NET 8
                                 TestOptions options);
 
     [LoggerMessage(Level = LogLevel.Information, Message = nameof(LogOptionsWithLogPropertiesSkipNull))]
     public static partial void LogOptionsWithLogPropertiesSkipNull(ILogger logger,
-                                [LogProperties(SkipNullProperties = true, OmitReferenceName = true)] // .NET8
+                                [LogProperties(SkipNullProperties = true, OmitReferenceName = true)] // .NET 8
                                 TestOptions options);
 
     [LoggerMessage(Level = LogLevel.Information, Message = nameof(LogOptionsWithLogProvider))]
     public static partial void LogOptionsWithLogProvider(ILogger logger,
-                                [TagProvider(typeof(TestOptionTagProvider), nameof(TestOptionTagProvider.RecordTags))] // .NET8
+                                [TagProvider(typeof(TestOptionTagProvider), nameof(TestOptionTagProvider.RecordTags))] // .NET 8
                                 TestOptions options);
 
     internal static string MaskConnectionString(string? connectionString)

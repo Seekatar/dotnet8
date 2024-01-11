@@ -13,10 +13,6 @@
             "args": [],
             "cwd": "${workspaceFolder}/src",
             "stopAtEntry": false,
-            "serverReadyAction": {
-                "action": "openExternally",
-                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
-            },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development"
             },
@@ -32,6 +28,9 @@
             "program": "${workspaceFolder}/src/bin/Debug/net8.0/dotnet8.dll",
             "args": [],
             "cwd": "${workspaceFolder}/src",
+            "launchBrowser": {
+                "enabled": false
+            },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
                 "ASPNETCORE_HTTP_PORTS": "5000",
