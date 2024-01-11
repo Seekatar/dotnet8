@@ -10,7 +10,11 @@
 		},
 		"ghcr.io/devcontainers/features/powershell:1": {
 			"version": "7.4"
-		}
+		},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {}
+	},
+	"containerEnv": {
+		"ASPNETCORE_ENVIRONMENT": "Development"
 	}
 
 	// Features to add to the dev container. More info: https://containers.dev/features.

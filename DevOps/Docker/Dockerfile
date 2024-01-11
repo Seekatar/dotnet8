@@ -7,7 +7,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:${aspNetVersion} AS runtime
 FROM mcr.microsoft.com/dotnet/sdk:${sdkVersion} AS build
 ARG build_configuration=Debug
 ARG BUILD_VERSION=1.0.0.0
-ARG RUN_UNIT_TEST=true
 
 
 WORKDIR /app
@@ -45,9 +44,5 @@ ENV ASPNETCORE_HTTP_PORTS=5000
 COPY --from=build /app/publish .
 
 EXPOSE 5000
-
-RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /app
-
-USER appuser
 
 ENTRYPOINT ["dotnet", "dotnet8.dll"]

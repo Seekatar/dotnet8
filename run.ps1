@@ -163,7 +163,10 @@ foreach ($currentTask in $Tasks) {
                         $extra += "--rm"
                     }
                     if (Test-Path '../DevOps/Docker/.dockerignore') {
+                        "Copying ../DevOps/Docker/.dockerignore"
                         Copy-Item '../DevOps/Docker/.dockerignore' '.'
+                    } else {
+                        Write-Warning "Didn't find '../DevOps/Docker/.dockerignore"
                     }
                     $lowerAppName = $appName.ToLowerInvariant()
 
@@ -179,10 +182,9 @@ foreach ($currentTask in $Tasks) {
                     }
 
                     "-----------------------------------"
-                    "  docker build for build and test"
+                    "  docker build for build and test with $($buildExtra -join ',')"
                     "-----------------------------------"
                     docker build  `
-                            --build-arg RUN_UNIT_TEST=true `
                             --target build-test-output `
                             --output ../docker-build-output `
                             --file $file `
