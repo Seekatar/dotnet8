@@ -204,7 +204,7 @@ foreach ($currentTask in $Tasks) {
                             docker tag ${lowerAppName}:$DockerTag ${lowerAppName}:latest
                         }
                     }
-                    Remove-Item (Join-Path $PSScriptRoot .dockerignore) -ErrorAction SilentlyContinue
+                    Remove-Item ./.dockerignore -ErrorAction SilentlyContinue
                 }
             }
             Default {
