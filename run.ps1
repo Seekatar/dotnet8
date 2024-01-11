@@ -69,16 +69,19 @@ function Get-DockerEnvFile() {
     while ($folder -and !(Test-Path (Join-Path $folder shared.appsettings.Development.json))) {
         $folder = Split-Path $folder -Parent
     }
-    if (Test-Path (Join-Path $folder shared.appsettings.Development.json)) {
+    if ($folder -and (Test-Path (Join-Path $folder shared.appsettings.Development.json))) {
         $env = Get-Content (Join-Path $folder shared.appsettings.Development.json) -raw | ConvertFrom-json
         Get-Member -input $env -MemberType NoteProperty | ForEach-Object {
             $name = $_.name
             "$($name -replace ':','__')=$(($env.$name -replace "`n","\n") -replace "localhost","host.docker.internal")"
         } | Out-File (Join-Path $PSScriptRoot ".env") -Encoding ascii
             "Wrote $(Join-Path $PSScriptRoot ".env")"
-        } else {
-            "No shared appsettings found."
-        }
+    } else {
+        Write-Warning "No shared appsettings found."
+        $false
+    }
+    Set-Content (Join-Path $PSScriptRoot ".env") -Encoding ascii -Value ''
+    $true
 }
 
 # execute a script, checking lastexit code
