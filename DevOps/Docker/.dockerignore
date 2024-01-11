@@ -1,0 +1,10 @@
+example_files
+readme_images
+**/bin
+**/obj
+**/.git
+**/.vs
+**/.vscode
+readme.md
+.idea
+**/*.user
