@@ -3,11 +3,10 @@ using System.Security.Cryptography;
 using dotnet8.Configuration;
 using dotnet8.ExceptionHandlers;
 using dotnet8.TimeConfiguration;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Options;
 using Serilog;
 
-// .NET 8 alias for any type now, before only named types
+// C# 12 alias for any type now, before only named types
 using WidgetAlias = dotnet8.Models.Widget;
 
 const string NotResilient = "NotResilient";
@@ -20,7 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// .NET8 Can set resiliency or other settings for _all_ with this
+// ASP.NET 8 Can set resiliency or other settings for _all_ with this
 // https://devblogs.microsoft.com/dotnet/dotnet-8-networking-improvements/#set-up-defaults-for-all-clients
 #if SetAddStandardResilienceHandlerOnAll
     builder.Services.ConfigureHttpClientDefaults(b => b.AddStandardResilienceHandler());
@@ -29,7 +28,7 @@ builder.Services.AddSwaggerGen();
     builder.Services.AddHttpClient(Resilient)
         .AddStandardResilienceHandler(options =>
         {
-            // .NET8 (but resiliency is NuGet available to all .NET)
+            // ASP.NET 8 (but resiliency is NuGet available to all .NET)
             // take the defaults, but can change them here
             // see https://devblogs.microsoft.com/dotnet/building-resilient-cloud-services-with-dotnet-8/#standard-resilience-pipeline
         });
@@ -59,10 +58,10 @@ builder.Services.AddOptions<TestOptions>()
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 // keyed services, these are _not_ returned from IEnumerable<IDoit>, only second two
-builder.Services.AddKeyedScoped<IDoIt, DoItA>("A");
-builder.Services.AddKeyedScoped<IDoIt, DoItB>("B");
-builder.Services.AddScoped<IDoIt, DoItC>();
-builder.Services.AddScoped<IDoIt, DoItD>();
+builder.Services.AddKeyedScoped<IDoIt, DoItKeyedScoped>("Scoped");
+builder.Services.AddKeyedSingleton<IDoIt, DoItKeyedSingleton>("Singleton");
+builder.Services.AddScoped<IDoIt, DoItScoped>();
+builder.Services.AddSingleton<IDoIt, DoItSingleton>();
 
 var app = builder.Build();
 
@@ -86,7 +85,8 @@ var summaries = new[]
 var client = app.MapGroup("/")
                 .WithOpenApi();
 
-// .NET8 default lambda parameter for zip
+// =============================================================================
+// C# 12 default lambda parameter for zip
 client.MapGet("/weatherforecast", (string zip = "30022") =>
 {
     var forecast =  Enumerable.Range(1, 5).Select(index =>
@@ -102,6 +102,7 @@ client.MapGet("/weatherforecast", (string zip = "30022") =>
 })
 .WithName("GetWeatherForecast");
 
+// =============================================================================
 client.MapGet("/time", (IConfiguration config, IOptions<TimeConfigurationOptions> options) =>
 {
     return new TimeResponse(config.GetValue<DateTime>("WhatTimeIsIt"),
@@ -111,51 +112,30 @@ client.MapGet("/time", (IConfiguration config, IOptions<TimeConfigurationOptions
 })
 .WithName("WhatTimeIsIt");
 
-// this will work since it does retry
-client.MapGet("/resilient", async (HttpRequest request, IHttpClientFactory clientFactory) => {
-    var client = clientFactory.CreateClient(Resilient);
+// =============================================================================
+client.MapGet("/resilient", async (HttpRequest request, IHttpClientFactory clientFactory, bool resilient = true) => {
+    var client = clientFactory.CreateClient(resilient ? Resilient : NotResilient);
     var host = request.Host.Value;
     var scheme = request.Scheme;
-    await client.GetAsync($"{scheme}://{host}/get-it?reset=true");
+
     var response = await client.GetAsync($"{scheme}://{host}/get-it");
     return response.StatusCode;
 })
 .WithName("Resilient");
 
-// this will fail since it doesn't retry
-client.MapGet("/not-resilient", async (HttpRequest request, IHttpClientFactory clientFactory) => {
-    var client = clientFactory.CreateClient(NotResilient);
-    var host = request.Host.Value;
-    var scheme = request.Scheme;
-    await client.GetAsync($"{scheme}://{host}/get-it?reset=true");
-    var response = await client.GetAsync($"{scheme}://{host}/get-it");
-    return response.StatusCode;
-})
-.WithName("NotResilient");
-
-// simulate failures for /resilient and /not-resilient
-int i = 1;
-client.MapGet("/get-it", (bool reset = false) => {
-    if (reset) {
-        i = 1; return Results.Ok(i);
-    }
-    var ret = i++ % 3 == 0 ? Results.Ok(i - 1) : Results.StatusCode(500);
-    System.Diagnostics.Debug.WriteLine($"Returning {ret} for {i - 1}");
-    return ret;
-})
-.WithName("GetIt");
-
+// =============================================================================
 client.MapGet("/widget", () => {
-    // .NET8 construct lists with brackets and it figures out the type
+    // C# 12 construct lists with brackets and it figures out the type
     List<WidgetAlias> widgetList = [new WidgetAlias("My Widget", 1), new WidgetAlias("My Widget", 2)];
     Collection<Widget> widgetArray = [new WidgetAlias("My Widget", 3), new WidgetAlias("My Widget", 4)];
 
-    // .NET8 spread operator
+    // C# 12 spread operator
     WidgetAlias[] ret = [new WidgetAlias("My Widget", 0), .. widgetList, .. widgetArray];
     return ret; // try to return without ret gives ambiguous compiler error
 })
 .WithName("Widget");
 
+// =============================================================================
 client.MapGet("/log-options", (IOptionsSnapshot<TestOptions> options, ILogger<TestOptions> logger) => {
 
     // .NET 6 flavor that logs individual properties to the logs
@@ -164,20 +144,22 @@ client.MapGet("/log-options", (IOptionsSnapshot<TestOptions> options, ILogger<Te
 
     // .NET 8 flavor that logs all properties to structured logging
     TestOptions.LogOptionsWithLogProperties(logger, options.Value);
-    TestOptions.LogOptionsWithLogPropertiesSkipNull(logger, options.Value);
     TestOptions.LogOptionsWithLogProvider(logger, options.Value);
 
     return Results.Ok(new { Message = "Check the structured log output for multiple entries"});
 })
 .WithName("LogOptions");
 
+// =============================================================================
 client.MapGet("/throw", () => {
     throw new Exception("This is an exception");
 })
 .WithName("Throw");
 
+// =============================================================================
 client.MapGet("/random", () => {
     Span<string> someStrings = [ "Twas", "brillig", "slithy", "toves", "Did ", "gyre", "gimble", "wabe", "All", "mimsy", "borogoves", "mome", "raths", "outgrabe" ];
+    // .NET 8
     RandomNumberGenerator.Shuffle(someStrings);
     return Results.Ok(new RandomStuff(
         RandomNumberGenerator.GetHexString(16),
@@ -188,13 +170,27 @@ client.MapGet("/random", () => {
 })
 .WithName("Random");
 
-client.MapGet("/keyed-service", ([FromKeyedServices("A")] IDoIt a,
-                                 [FromKeyedServices("B")] IDoIt b,
-                                 IEnumerable<IDoIt> both ) => {
-    string [] ret = [a.DoIt(), b.DoIt(), .. both.Select(x => x.DoIt()) ];
+// =============================================================================
+client.MapGet("/keyed-service", ([FromKeyedServices("Scoped")] IDoIt scoped,
+                                 [FromKeyedServices("Singleton")] IDoIt singleton,
+                                 IEnumerable<IDoIt> all ) => {
+    string [] ret = [scoped.DoIt(), singleton.DoIt(), .. all.Select(x => x.DoIt()) ];
     return Results.Ok(ret);
 })
 .WithName("KeyedService");
+
+// =============================================================================
+// simulate failures for /resilient
+int i = 1;
+client.MapGet("/get-it", (bool reset = false) => {
+    if (reset) {
+        i = 1; return Results.Ok(i);
+    }
+    var ret = i++ % 3 == 0 ? Results.Ok(i - 1) : Results.StatusCode(500);
+    System.Diagnostics.Debug.WriteLine($"Returning {ret} for {i - 1}");
+    return ret;
+})
+.WithName("GetIt");
 
 app.Run();
 
@@ -212,7 +208,7 @@ interface IDoIt
 {
     string DoIt() => $"{GetType().Name} did it";
 }
-class DoItA : IDoIt {}
-class DoItB : IDoIt {}
-class DoItC : IDoIt {}
-class DoItD : IDoIt {}
+class DoItKeyedScoped : IDoIt {}
+class DoItKeyedSingleton : IDoIt {}
+class DoItScoped : IDoIt {}
+class DoItSingleton : IDoIt {}

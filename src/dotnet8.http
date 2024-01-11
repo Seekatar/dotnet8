@@ -17,7 +17,7 @@ GET {{src_HostAddress}}/resilient
 ### reset exception count
 GET {{src_HostAddress}}/get-it?reset=true
 ### will not retry
-GET {{src_HostAddress}}/not-resilient
+GET {{src_HostAddress}}/resilient?resilient=false
 
 ### logs object semantic log
 GET {{src_HostAddress}}/log-options
@@ -25,11 +25,11 @@ GET {{src_HostAddress}}/log-options
 ### exception handling
 GET {{src_HostAddress}}/throw
 
-### show random data
-GET {{src_HostAddress}}/random
-
 ### keyed services
 GET {{src_HostAddress}}/keyed-service
+
+### show random data
+GET {{src_HostAddress}}/random
 
 ### IConfiguration Provider test
 GET {{src_HostAddress}}/time

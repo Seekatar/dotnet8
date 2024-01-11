@@ -1,4 +1,4 @@
-# .NET 8 has chiseld containers
+# .NET 8 has chiseled containers
 ARG aspNetVersion=8.0.0-jammy-chiseled
 ARG sdkVersion=8.0.100
 
