@@ -173,8 +173,8 @@ client.MapGet("/random", () => {
 // =============================================================================
 client.MapGet("/keyed-service", ([FromKeyedServices("Scoped")] IDoIt scoped,
                                  [FromKeyedServices("Singleton")] IDoIt singleton,
-                                 IEnumerable<IDoIt> all ) => {
-    string [] ret = [scoped.DoIt(), singleton.DoIt(), .. all.Select(x => x.DoIt()) ];
+                                 IEnumerable<IDoIt> all, IDoIt one ) => {
+    string [] ret = [scoped.DoIt(), singleton.DoIt(), one.DoIt(), .. all.Select(x => x.DoIt()) ];
     return Results.Ok(ret);
 })
 .WithName("KeyedService");
